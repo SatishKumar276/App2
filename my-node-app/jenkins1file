@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS =  credentials('267')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/SatishKumar276/App2.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                script {
+                    docker.build('my-node-app', '-f Dockerfile .')
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                // Define your test steps here
+                echo 'Running tests...'
+            }
+        }
+        stage('Push Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', '267') {
+                        docker.image('my-node-app').push('latest')
+                    }
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'docker-compose down'
+                sh 'docker-compose up -d'
+            }
+        }
+    }
+}
